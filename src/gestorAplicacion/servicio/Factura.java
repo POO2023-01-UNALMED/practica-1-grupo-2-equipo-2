@@ -1,37 +1,39 @@
 package gestorAplicacion.servicio;
 
+import java.io.Serializable;
 import java.util.*;
 import gestorAplicacion.enrutadorHFC.Router;
 import gestorAplicacion.host.Cliente;
 import gestorAplicacion.host.ProveedorInternet;
 
-public class Factura {
+public class Factura implements Serializable {
 
-	 //Atributos
+	//CLASE QUE CONTIENE LA INFORMACION DE LOS PAGOS QUE DEBE REALIZAR UN CLIENTE
+
+	//ATRIBUTOS
 	private Cliente usuario;
-	private String IP;
+	private String ip;
 	private int pagosAtrasados;
 	private int precio;
     private Mes mesActivacion;
 
-	  //Constructores
-	public Factura(Cliente usuario, String ip,int pagosAtrasados, int precio, Mes mesActivacion){ //Mes se tiene que utilizar para aplicar el enum
+	//CONSTRUCTORES
+	public Factura(Cliente usuario, String ip,int pagosAtrasados, int precio, Mes mesActivacion){ 
 	    this.usuario=usuario;
-	    this.IP=ip;
+	    this.ip=ip;
 	    this.pagosAtrasados=pagosAtrasados;
-	    this.precio=precio;
+	    this.precio=precio*pagosAtrasados;
 	    this.mesActivacion = mesActivacion; 
 	}
 
-	  //Sobrecarga para la funcionalidad de AdquisiciónPlan()
 	public Factura(Cliente usuario){
 	    this.usuario=usuario;
 	}
 
 
-	  //Métodos
+	//METODOS
 	  
-	  //Método verificarFactura()---Funcionalidad Visualizar dispositivos conectados
+	//METODO INSTANCIA---UTILIZADO PRINCIPALMENTE EN FUNCIONALIDAD VISUALIZAR DISPOSITIVOS
 	public boolean verificarFactura(Factura factura) {
 	    if(factura.getPagosAtrasados()>2){
 	      return false;
@@ -40,29 +42,33 @@ public class Factura {
 	    }
 	}
 
-	  //Método accionesPagos()---Funcionalidad Visualizar dispositivos conectados
+	//METODO INSTANCIA--FUNCIONALIDAD VISUALIZAR DISPOSITIVOS
+
 	public Router accionesPagos(int opcElegida){
-	    if (opcElegida == 1){//Opcion abonar a la deuda
+	    if (opcElegida == 1){ //OPCION ABONAR
 	      Scanner entrada = new Scanner(System.in);
 	      int abonoUsuario = entrada.nextInt();
 	      int precioPlan=usuario.getPlan().get(2);
-	    //condicion abono mayor deuda//
+	    
+		  //SI EFECTIVAMENTE ABONA(DA MENOS QUE LO QUE DEBE)
 	      if (abonoUsuario < precio){
-	        this.precio=this.precio-abonoUsuario;
+	        this.precio=this.precio-(int)((abonoUsuario/precioPlan))*precioPlan;
 	        this.pagosAtrasados=this.pagosAtrasados-(int)((abonoUsuario/precioPlan));
+
 	        if (this.pagosAtrasados<=2){
 	          return usuario.getModem();
 	        }else{
             return null;
-          }
+          	}
+
 	      }else{
 	        return null;
 	      }
-	    }else if(opcElegida==2){ //Opción Pagar todo
+
+	    }else if(opcElegida==2){ //OPCION PAGAR TODO LO QUE SE DEBE
 	      Scanner entrada = new Scanner(System.in);
 	      int precioUsuario=entrada.nextInt();
 	      if (precioUsuario==precio){ 
-	      // Verifica que el precio que ingresa por consola sea el correcto, sino, devuelve null y en el cuerpo de la funcionalidad se ejecuta de nuevo el meotod hasta que meta el precio correcto
 	        this.precio=0;
 	        this.pagosAtrasados=0;
 	        return usuario.getModem();
@@ -73,39 +79,38 @@ public class Factura {
 	   return null;
 	}
 	  
-	  //Método generarFactura()--Funcionalidad AdquisicionPlan()
-	  public Factura generarFactura(Cliente cliente,ProveedorInternet proveedor){
-	    
+	//METODO INSTANCIA--FUNCIONALIDAD ADQUISICION DE UN PLAN--ACABA DE CONFIGURAR LA NUEVA FACTURA DEL CLIENTE
+	public Factura generarFactura(Cliente cliente,ProveedorInternet proveedor){
+
+	    int precioplan=0;
 	    String plan=cliente.getNombrePlan();
 
 	    if (plan.equals("BASIC")){
-	      int precioplan=proveedor.getPlanes().getBASIC().get(2);
-	      this.precio= precioplan;
+	      precioplan=proveedor.getPlanes().getBASIC().get(2);
+	      
 	    }else if(plan.equals("STANDARD")){
-	      int precioplan=proveedor.getPlanes().getSTANDARD().get(2); 
-	      this.precio= precioplan;
-	    }else{
-	      int precioplan=proveedor.getPlanes().getPREMIUM().get(2); 
-	      this.precio= precioplan;
+	      precioplan=proveedor.getPlanes().getSTANDARD().get(2); 
+	    
+	    }else if(plan.equals("PREMIUM")){
+	      precioplan=proveedor.getPlanes().getPREMIUM().get(2); 
+	    
 	    }
 
-	    String ip=cliente.getModem().getIP();
-	    this.IP=ip;   
-	    this.pagosAtrasados=0;
-      this.mesActivacion=Mes.ABRIL;
+	    ip=cliente.getModem().getIP();  
+	    pagosAtrasados=0;
+		precio= precioplan;
+      	mesActivacion=Mes.MAYO;
 	    cliente.setFactura(this);
-	    return this;  //De aqui que lo lleve al metodo de accionesPagos()--opcion2 
-	  }
+	    return this;  
+	}
 
-	  //Método toString()
-	  public String toString(){
+	//METODO TOSTRING
+	public String toString(){
+		return "Factura" + "\nUsuario: " + usuario.getNombre() + "\nCédula: " + usuario.getID() + "\nIP: "+ ip + "\nMes de Activacion: " + mesActivacion + "\nNúmero de pagos atrasados: " + pagosAtrasados  + "\nPrecio total a pagar: " + precio;
+	}
 
-	    return "Factura" + "\nUsuario: " + usuario.getNombre() + "\nCédula: " + usuario.getId() + "\nIP: "+ IP + "\nMes de Activacion:" + mesActivacion
-	    		+ "\nNúmero de pagos atrasados: " + pagosAtrasados  + "\nPrecio total a pagar: " + precio;
-	  }
-
-
-	  //Setters y Getters
+	//SETTERS Y GETTERS
+	
 	public Cliente getUsuario() {
 		return usuario;
 	}
@@ -114,15 +119,14 @@ public class Factura {
 		this.usuario = usuario;
 	}
 
-	public String getIP() {
-		return IP;
+	public String getIp() {
+		return ip;
 	}
 
-	public void setIP(String iP) {
-		this.IP = iP;
+	public void setIp(String ip) {
+		this.ip = ip;
 	}
 
-		
 	public int getPagosAtrasados() {
 		return pagosAtrasados;
 	}
@@ -138,5 +142,13 @@ public class Factura {
 	public void setPrecio(int precio) {
 		this.precio = precio;
 	}
-	    
+
+	public Mes getMesActivacion() {
+		return mesActivacion;
+	}
+
+	public void setMesActivacion(Mes mesActivacion) {
+		this.mesActivacion = mesActivacion;
+	}
+	
 }

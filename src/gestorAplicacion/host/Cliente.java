@@ -1,14 +1,18 @@
 package gestorAplicacion.host;
 
+import java.io.Serializable;
 import java.util.*;
 import gestorAplicacion.enrutadorHFC.Router;
 import gestorAplicacion.enrutadorHFC.Servidor;
 import gestorAplicacion.servicio.Factura;
-import gestorAplicacion.enrutadorHFC.Antena;;
+import gestorAplicacion.servicio.Plano;
+import gestorAplicacion.enrutadorHFC.Antena;
 
-public class Cliente {
+public class Cliente implements Serializable{
 
-  // Atributos
+  //CLASE PRINCIPAL YA QUE CASI TODAS LAS FUNCIONALIDADES ESTÁN ORIENTADAS A LOS CLIENTES
+
+  //ATRIBUTOS
   private String nombre;
   private final long ID;
   private Router modem;
@@ -16,11 +20,12 @@ public class Cliente {
   private ArrayList<Integer> plan;
   private String nombrePlan;
   private Factura factura;
+  
 
-  // Constructores
-  public Cliente(long id, Router modem, ProveedorInternet proveedor, ArrayList<Integer> plan, String nombrePlan, Factura factura) {
-
+  //CONSTRUCTORES
+  public Cliente(String nombre, long id, Router modem, ProveedorInternet proveedor, ArrayList<Integer> plan, String nombrePlan, Factura factura) {
     this.ID= id;
+    this.nombre=nombre;
     this.modem = modem;
     this.proveedor = proveedor;
     this.plan = plan;
@@ -28,8 +33,18 @@ public class Cliente {
     this.factura = factura;
     proveedor.getClientes().add(this);
   }
+
+  public Cliente(String nombre,long id, Router modem, ProveedorInternet proveedor, ArrayList<Integer> plan, String nombrePlan) { 
+
+    this.ID= id;
+    this.nombre=nombre;
+    this.modem = modem;
+    this.proveedor = proveedor;
+    this.plan = plan;
+    this.nombrePlan = nombrePlan;
+    proveedor.getClientes().add(this);
+  }
   
-  //Sobrecarga del constructor para cliente nuevo---Funcionalidad Adquisicion plan()
   public Cliente(String nombre, long id,ProveedorInternet proveedor) {
     this.nombre = nombre;
     ID = id;
@@ -37,9 +52,10 @@ public class Cliente {
     proveedor.getClientes().add(this);
   }
 
-  // Métodos
   
-  // Método buscarCliente() ---Funcionalidad AdquisicionPlan()
+  //METODOS
+
+  //METODO INSTANCIA--FUNCIONALIDAD ADQUISICION DE PLAN---RETORNA UN ARREGLO CON CLIENTES QUE PERTENECEN A UN PLAN ESPECÍFICO
   public ArrayList<Cliente> buscarCliente(ArrayList<Cliente> clientes, String nombrePlan) {
     ArrayList<Cliente> clientesPorPlan = new ArrayList<Cliente>();
     for (Cliente cliente : clientes) {
@@ -52,7 +68,7 @@ public class Cliente {
       return clientesPorPlan;
   }
 
-  //Método buscarCliente1()---Funcionalidad Reporte()
+  //METODO ESTÁTICO---FUNCIONALIDAD REPORTE---ETORNA UN ARREGLO CON CLIENTES QUE PERTENECEN A UN MISMO PROVEEDOR, SEDE Y PLAN
   public static ArrayList<Cliente> buscarCliente1(String sede,String nombrePlan,ProveedorInternet proveedor){
     ArrayList<Cliente> clientesPlan = new ArrayList<Cliente>();
     for(Cliente cliente: proveedor.getClientes()){
@@ -65,10 +81,9 @@ public class Cliente {
     return clientesPlan;
   }
 
-  // Método configurarPlan()
-  public Factura configurarPlan(String plan, Cliente cliente, String sede) {
+  //METODO INSTANCIA---FUNCIONALIDAD ADQUISICION DE PLAN---REALIZA TODOS LOS CAMBIOS NECESARIOS PARA REGISTRAR A UN CLIENTE NUEVO, BUSCA UN SERVIDOR Y UNA ANTENA DEL PROVEEDOR INDICADO PARA ASOCIARLOS AL NUEVO ROUTER 
+  public Factura configurarPlan(String plan, Cliente cliente, String sede, int coordenadaX, int coordenadaY) {
 
-    //FALTA VER LO DE LA ANTENA Y LO DE LAS COORDENADAS
     Servidor servidorAsociado=null;
     for(Servidor servidor: Servidor.getServidoresTotales()){
       if(servidor.getProveedor().getNombre().equals(cliente.getProveedor().getNombre())){
@@ -84,6 +99,9 @@ public class Cliente {
       Router routercliente = new Router(cliente.getProveedor().getPlanes().getBASIC().get(0), cliente.getProveedor().getPlanes().getBASIC().get(1),true,servidorAsociado);
       cliente.setModem(routercliente);
       routercliente.setSede(sede);
+      Plano planoCliente = new Plano(coordenadaX,coordenadaY);
+      planoCliente.setSede(servidorAsociado.getCoordenadas().getSede());
+      routercliente.setCoordenadas(planoCliente);
 
       for(Antena antena: Antena.getAntenasTotales()){
         if(antena.getSede().equals(sede)){
@@ -101,6 +119,9 @@ public class Cliente {
       Router routercliente = new Router(cliente.getProveedor().getPlanes().getSTANDARD().get(0), cliente.getProveedor().getPlanes().getSTANDARD().get(1),true,servidorAsociado);
       cliente.setModem(routercliente);
       routercliente.setSede(sede);
+      Plano planoCliente = new Plano(coordenadaX,coordenadaY);
+      planoCliente.setSede(servidorAsociado.getCoordenadas().getSede());
+      routercliente.setCoordenadas(planoCliente);
 
       for(Antena antena: Antena.getAntenasTotales()){
         if(antena.getSede().equals(sede)){
@@ -115,9 +136,12 @@ public class Cliente {
     }else{
       cliente.setNombrePlan(plan);
       cliente.setPlan(cliente.getProveedor().getPlanes().getPREMIUM());
-      Router routercliente = new Router(cliente.getProveedor().getPlanes().getPREMIUM().get(0), cliente.getProveedor().getPlanes().getPREMIUM().get(1),true,servidorAsociado);
+      Router routercliente = new Router(cliente.getProveedor().getPlanes().getPREMIUM().get(0),cliente.getProveedor().getPlanes().getPREMIUM().get(1),true,servidorAsociado);
       cliente.setModem(routercliente);
       routercliente.setSede(sede);
+      Plano planoCliente = new Plano(coordenadaX,coordenadaY);
+      planoCliente.setSede(servidorAsociado.getCoordenadas().getSede());
+      routercliente.setCoordenadas(planoCliente);
       
       for(Antena antena: Antena.getAntenasTotales()){
         if(antena.getSede().equals(sede)){
@@ -133,58 +157,58 @@ public class Cliente {
     return new Factura(cliente);
   }
 
-  // Getters y Setters
+  //SETTERS Y GETTERS
   
   public String getNombre() {
-  	return nombre;
+    return nombre;
   }
-  
+
   public void setNombre(String nombre) {
-  	this.nombre = nombre;
+    this.nombre = nombre;
   }
-  
-  public long getId() {
-  	return ID;
+
+  public long getID() {
+    return ID;
   }
-  
+
   public Router getModem() {
-  	return modem;
+    return modem;
   }
-  
+
   public void setModem(Router modem) {
-  	this.modem = modem;
+    this.modem = modem;
   }
-  
+
   public ProveedorInternet getProveedor() {
-  	return proveedor;
+    return proveedor;
   }
-  
+
   public void setProveedor(ProveedorInternet proveedor) {
-  	this.proveedor = proveedor;
+    this.proveedor = proveedor;
   }
-  
+
   public ArrayList<Integer> getPlan() {
-  	return plan;
+    return plan;
   }
-  
+
   public void setPlan(ArrayList<Integer> plan) {
-  	this.plan = plan;
+    this.plan = plan;
   }
-  
+
   public String getNombrePlan() {
-  	return nombrePlan;
+    return nombrePlan;
   }
-  
+
   public void setNombrePlan(String nombrePlan) {
-  	this.nombrePlan = nombrePlan;
+    this.nombrePlan = nombrePlan;
   }
-  
+
   public Factura getFactura() {
-  	return factura;
+    return factura;
   }
-  
+
   public void setFactura(Factura factura) {
-  	this.factura = factura;
+    this.factura = factura;
   }
 
 }
