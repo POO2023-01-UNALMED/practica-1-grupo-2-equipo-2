@@ -4,27 +4,46 @@ import java.util.*;
 import gestorAplicacion.host.Cliente;
 import gestorAplicacion.servicio.Plano;
 
-import java.lang.reflect.*;
-import java.lang.reflect.InvocationTargetException;
-import java.io.IOException;
-
 public class Router extends Cobertura {
 
-  // Atributos
+  //ESTA CLASE ES UNA DE LAS PRINCIPALES DADO QUE ESTABLECE LA RELACIÓN ENTRE CLIENTE-PROVEEDOR Y ES UTILIZADA EN TODAS LAS FUNCIONALIDADES
+
+  //ATRIBUTOS
   private final String IP;
   private int up;
   private int down;
   private boolean online;
   private int ping;
-  private Plano coordenadas; // Aqui se obtienen las coordenadas del router
+  private Plano coordenadas; 
   private Servidor servidorAsociado;
   private Antena antenaAsociada;
   private String sede;
+  private int velocidad;
 
-  // Constructores
+  //CONSTRUCTORES
   public Router(int up, int down, boolean online, Servidor servidorAsociado) {
     
     super(3);
+    Random random = new Random();
+    int octeto1 = random.nextInt(256);
+    int octeto2 = random.nextInt(256);
+    int octeto3 = random.nextInt(256);
+    int octeto4 = random.nextInt(256);
+    String ip = octeto1 + "." + octeto2 + "." + octeto3 + "." + octeto4;
+
+    IP = ip;
+    this.up = up;
+    this.down = down;
+    this.online = online;
+    sede=servidorAsociado.getSede();   
+    this.servidorAsociado=servidorAsociado;
+    velocidad=250;
+    servidorAsociado.getRouters().add(this);
+  }
+
+  public Router(int up, int down, boolean online, Antena antenaAsociada,Plano coordenadas,int g) {
+    
+    super(g);
 
     Random random = new Random();
     int octeto1 = random.nextInt(256);
@@ -37,27 +56,35 @@ public class Router extends Cobertura {
     this.up = up;
     this.down = down;
     this.online = online;
-    this.servidorAsociado=servidorAsociado;
-    servidorAsociado.getRouters().add(this);
+    this.coordenadas=coordenadas;
+    this.antenaAsociada=antenaAsociada;
+    velocidad=250;
+    sede=antenaAsociada.getSede();
   }
 
-  
-  // Métodos
-  // Metodo actualizarvelocidad---Funcionalidad test
+  public Router(){
+    super(3);
+    IP="";
+    velocidad=250;
+  }
+
+  //METODOS
+
+  //METODO DE INSTANCIA---FUNCIONALIDAD TEST-- SE ENCARGA DE ACTUALIZAR LAS MEGAS DEL CLIENTE DE ACUERDO CON LOS DISPOSITIVOS Y SI EL CLIENTE SE ENCUENTRA DENTRO O NO DE LA ZONA DE COBERTURA DE LA ANTENA QUE TIENE ASOCIADA
   public ArrayList<Integer> actualizarVelocidad(Cliente cliente) {
-    int megasUp = cliente.getPlan().get(1);
-    int megasDown = cliente.getPlan().get(0);
+    int megasUp = cliente.getPlan().get(0);
+    int megasDown = cliente.getPlan().get(1);
     Router routerCliente = cliente.getModem();
     ArrayList<Dispositivo> dispositivos = Dispositivo.getDispositivosTotales();
     ArrayList<Dispositivo> dispositivosCliente = verificarDispositivos(dispositivos, routerCliente);
     ArrayList<Integer> listaActualizada = new ArrayList<Integer>();
     if (dispositivosCliente.size() == 0) {
-        return null;
+        megasUp=26;
+        megasDown=18;
     } else {
       for (Dispositivo dispoActual : dispositivosCliente) {
-        // if (antenaAsociada.verificarZonaCobetura(this) && generacion==antenaAsociada.getGeneracion()) {
-
-          if (antenaAsociada.verificarZonaCobertura(this)){
+       
+          if (antenaAsociada.verificarZonaCobertura(this,antenaAsociada)){
             if (dispoActual.getNombre().equals("Celular")) {
               megasUp -= 4;
               megasDown -= 10;
@@ -71,10 +98,10 @@ public class Router extends Cobertura {
               megasDown -= 30;
             }
           }else{
-              megasUp=-1;
-              megasDown=-1;
+              megasUp=26;
+              megasDown=18;
               break;
-            }
+          }
         }
 
       }
@@ -82,60 +109,52 @@ public class Router extends Cobertura {
       listaActualizada.add(megasUp);
       return listaActualizada;
     }
-  //}
 
-  // Metodo de Actualizar Ping -- Retornamos
+  //METODO INSTANCIA---FUNCIONALIDAD TEST---ACTUALIZA EL PING DE ACUERDO A LAS MEGAS
   public String actualizarPing(ArrayList<Integer> listaActualizada) {
     int up = listaActualizada.get(1);
     int down = listaActualizada.get(0);
     int ping = 0;
-    while (true) {
+ 
       if (up >= 60 && down >= 400) {
         ping = (int) (Math.random() * 20);
-        // cliente.getModem().setPing(ping);
-        return "\rPing: \033[32m" + ping + " \033[0mms";
+   
+        return "\rPing: " + ping + " ms";
 
       } else if (up >= 40 && down >= 200) {
         ping = (int) (Math.random() * 21) + 20;
-        return "\rPing: \033[32m" + ping + " \033[0mms";
+        return "\rPing: "+ ping+ " ms";
       } else if (up >= 20 && down >= 100) {
         ping = (int) (Math.random() * 21) + 41;
-        return "\rPing: \033[33m" + ping + " \033[0mms";
+        return "\rPing: " + ping+" ms";
       } else if (up >= 0 && down >= 0) {
         ping = (int) (Math.random() * 21) + 90;
-        return "\rPing: \033[33m" + ping + " \033[0mms";
-      } else if (up < 0 && down < 0) {
+        return "\rPing: " + ping+" ms";
+      } else if (up < 0 || down < 0) {
         ping = (int) (Math.random() * 99) + 900;
-        return "\rPing: \033[31m" + ping + " \033[0mms";
+        return "\rPing: " + ping+" ms";
+      }else{
+        return null;
       }
-
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
   }
 
+  //METODO DE ISNTANCIA--FUNCIONALIDAD TEST--SE ENCARGA DE LLAMAR OTROS METODOS Y RETORNAR UN RESULTADO DE ACUERDO A ESTO
   public String test(Cliente cliente) {
     ArrayList<Integer> up_down = cliente.getModem().actualizarVelocidad(cliente);
+
     int ping = Integer.parseInt(cliente.getModem().actualizarPing(up_down).split(" ")[1]);
-    // int ping_numero = ping.substring(ping.indexOf("\033[32m") + 7, ping.indexOf("
-    // \033[0mms"));
+   
     int up = up_down.get(1);
     int down = up_down.get(0);
     String resultado1 = " ";
     String resultado2 = " ";
     String resultado3 = " ";
-    resultado1 = (900 < ping) ? "Red saturada"
-        : "Test de velocidad finalizado";
-    resultado2 = (antenaAsociada.verificarZonaCobertura(this)) ? "Test de velocidad finalizado." : "Inaccesible a la zona de cobertura.";
-    resultado3= (generacion==antenaAsociada.getGeneracion()) ? "Test de velocidad finalizado.":"Generación incompatible";
-
+    resultado1 = (900 < ping) ? "Red saturada": "Test de velocidad finalizado";
+    resultado2 = (up_down.get(0)==18) ? "Motivo: Inaccesible a la zona de cobertura.":"Test de velocidad finalizado.";
+    resultado3= (generacion==antenaAsociada.getGeneracion()) ? "Test de velocidad finalizado.":"Motivo: Generación incompatible";
 
     if (resultado1.contains("saturada")) {
       return actualizarPing(up_down) + "\n" + resultado1;
-
     } 
     else if(resultado2.contains("cobertura")){
       return resultado2;
@@ -143,89 +162,100 @@ public class Router extends Cobertura {
     else if(resultado3.contains("incompatible")){
       return resultado3;
     }
-    else {
-      return up + "\n" + down + "\n" + actualizarPing(up_down) + resultado1;
+    else{
+      return "Ping: " + actualizarPing(up_down);
     }
   }
 
-  // Verificar Dispositivos de un cliente
-  public ArrayList<Dispositivo> verificarDispositivos(ArrayList<Dispositivo> dispositivosTotales,
-      Router router) { // Crear
-
+  //METODO INSTANCIA--FUNCIONALIDAD VISUALIZAR DISPOSITIVOS--SE ENCARGA DE VERIFICAR CUALES SON LOS DISPOSITIVOS QUE TIENE EL CLIENTE 
+  public ArrayList<Dispositivo> verificarDispositivos(ArrayList<Dispositivo> dispositivosTotales, Router router) { // Crear
     ArrayList<Dispositivo> dispositivosConectados = new ArrayList<>();
     for (Dispositivo dispoActual : dispositivosTotales) {
       if (dispoActual.getIpAsociada().equals(router.getIP()) && (router.isOnline() == true)) {
         dispositivosConectados.add(dispoActual);
       }
-      return dispositivosConectados;
     }
-    return null;
+    return dispositivosConectados;
   }
 
-  // Funcionalidad Recomendacion()
 
+  //METODO INSTANCIA--FUNCIONALIDAD MEJORA TU PLAN----SE ENCARGA DE CALCULAR DISTINTAS COSAS Y LLAMA OTRO METODO QUE HALLA EL SERVIDOR MÁS CERCANO Y CON MAYOR INTENSIDAD DE FLUJO
   public ArrayList<Object> protocoloSeleccionServidor(ArrayList<Servidor> servidores, Cliente c) {
 
-    // 1.Coordenadas Routercliente
+    //1.COORDENADAS ROUTER CLIENTE
     int coordenadaX = coordenadas.getX();
     int coordenadaY = coordenadas.getY();
 
-    // 2.ListaDispositivos conectados al router
+    //2.DISPOSITIVOS CONECTADOS AL ROUTER
     ArrayList<Dispositivo> dispositivosConectados = verificarDispositivos(Dispositivo.getDispositivosTotales(), this);
 
-    // 3. Intensidad de flujo Inicial
-    int distancia = (int) Math.sqrt(Math.pow(servidorAsociado.getCoordenadas().getX() - coordenadaX, 2)
-        + Math.pow(servidorAsociado.getCoordenadas().getY() - coordenadaY, 2));
+    //3.DISTANCIA DEL ROUTER AL SERVIDOR ASOCIADO
+    int distancia = (int) Math.sqrt(Math.pow(servidorAsociado.getCoordenadas().getX() - coordenadaX, 2) + Math.pow(servidorAsociado.getCoordenadas().getY() - coordenadaY, 2));
 
+    //4.VELOCIDAD TOTAL
     int velocidadTotal = new Conexion(IP, down, up, online, generacion, c,c.getModem().getServidorAsociado()).getVelocidad();
 
-    intensidadFlujo = (velocidadTotal / dispositivosConectados.size()) - distancia;
+    //5.INTENSIDAD DE FLUJO INICIAL O ACTUAL
+    intensidadFlujo = (int)((getServidorAsociado().getFLUJO_RED_NETO()+(velocidadTotal / dispositivosConectados.size()) - distancia)*getServidorAsociado().getPORCENTAJE_EFICIENCIA());
 
-    // 4. Precio Inicial
-    int precioCliente = c.getPlan().get(2);
-
-    // 5. Generacion Inicial
-    //int generacion = getGeneracion();
-
-    // 6. Plan del cliente
+    //6.NOMBRE PLAN DEL CLIENTE
     String planCliente = c.getNombrePlan();
 
-    // 7.Servidor más
-
+    //SE INVOCA EL METODO INTENSIDADFLUJOOPTIMA QUE ENCUENTRA EL SERVIDOR MÁS CERNCANO
     ArrayList<Object> intensidadMayor = intensidadFlujoOptima(servidores, c);
-    Servidor servidorAproximado = (Servidor)(intensidadMayor.get(0)); // Ligadura dinamica
-    int intensidadServidorAproximado = (int)(intensidadMayor.get(1)); // Ligadura dinamica
+    Servidor servidorAproximado = (Servidor)(intensidadMayor.get(0)); 
+    int intensidadServidorAproximado = (int)(intensidadMayor.get(1));
+
+    //CARACTERISTICAS DE LA RECOMENDACION PARA RETORNAR
     ArrayList<Object> caracteristicas = new ArrayList<>();
 
-    // Variables comparativas/temporales
+    //SE REALIZAN LAS COMPARACIONES RESPECTIVAS
      if ( intensidadServidorAproximado == intensidadFlujo) {
-      if (servidorAproximado == servidorAsociado) { // Cuando la intensidad coincide y el servidor es el mismo.
+      if (servidorAproximado == servidorAsociado) { //CUANDO LAS INTENSIDADES SON IGUALES Y SE TRATA DEL MISMO SERVIDOR (EL CLIENTE YA TIENE LA MEJOR OPCION)
         return null;
-      } else {
-        try {
-          Field planServidor = servidorAproximado.getClass().getDeclaredField(planCliente);
-          Method m = servidorAproximado.getProveedor().getPlanes().getClass().getMethod("get" + planServidor);
-          Object listaPlan= m.invoke(servidorAproximado);
-          ArrayList<Integer> listaP=(ArrayList<Integer>)(listaPlan);
-          if (precioCliente > listaP.get(2)) {
-            
+      } else { //CUANDO LAS INTENSIDADES COINCIDEN PERO EL SERVIDOR ES DISTINTO---SE COMPARA EL PRECIO DEL PLAN DE ACUERDO AL TIPO DEL PLAN DEL CLIENTE
+        if (planCliente.equals("BASIC")){
+          if(c.getPlan().get(2)>servidorAproximado.getProveedor().getPlanes().getBASIC().get(2)){
+
             caracteristicas.add(intensidadFlujo);
             caracteristicas.add(servidorAproximado);
             caracteristicas.add(servidorAproximado.getProveedor());
             caracteristicas.add(intensidadServidorAproximado);
-            caracteristicas.add(listaP);
-            return caracteristicas; 
-          }else{
-            return null;
+            caracteristicas.add(servidorAproximado.getProveedor().getPlanes().getBASIC());
+            
+            return caracteristicas;
           }
-        } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException e) {
-          e.printStackTrace();
-        } catch (InvocationTargetException e) {
-          e.getCause().printStackTrace();
-        }
-      } /// Cuando la intensidad coincide pero el servidor es distinto..
+    
+        } else if (planCliente.equals("STANDARD")) {
+          
+          if(c.getPlan().get(2)>servidorAproximado.getProveedor().getPlanes().getSTANDARD().get(2)){
 
-    } else if (intensidadFlujo < intensidadServidorAproximado) {
+            caracteristicas.add(intensidadFlujo);
+            caracteristicas.add(servidorAproximado);
+            caracteristicas.add(servidorAproximado.getProveedor());
+            caracteristicas.add(intensidadServidorAproximado);
+            caracteristicas.add(servidorAproximado.getProveedor().getPlanes().getSTANDARD());
+            
+            return caracteristicas;
+          }
+  
+        } else if (planCliente.equals("PREMIUM")) {
+          
+          if(c.getPlan().get(2)>servidorAproximado.getProveedor().getPlanes().getPREMIUM().get(2)){
+
+            caracteristicas.add(intensidadFlujo);
+            caracteristicas.add(servidorAproximado);
+            caracteristicas.add(servidorAproximado.getProveedor());
+            caracteristicas.add(intensidadServidorAproximado);
+            caracteristicas.add(servidorAproximado.getProveedor().getPlanes().getPREMIUM());
+            
+            return caracteristicas;
+          }
+        }
+        
+      } 
+
+    } else if (intensidadFlujo < intensidadServidorAproximado) { //CUANDO LA INTENSIDAD ACTUAL ES MENOR A LA CALCULADA CON EL SERVIDOR MÁS CERCANO
       if (planCliente.equals("BASIC")) {
         
         caracteristicas.add(intensidadFlujo);
@@ -260,89 +290,87 @@ public class Router extends Cobertura {
     return null;
   }
 
-  // Metodo abstracto de Cobertura()//Funcionalidad Mejora tu Plan
+  //METODO DE INSTANCIA-- IMPLEMENTACION DEL METODO ABSTRACTO HEREDADO DE COBERTURA---BUSCA EL SERVIDOR MÁS CERCANO Y POR TANTO CON MAYOR INTENSIDAD DE FLUJO--FUNCIONALIDAD MEJORA TU PLAN
   public ArrayList<Object> intensidadFlujoOptima(ArrayList<Servidor> servidoresLocalidad, Cliente c) {
 
-    int distancia = (int) Math.sqrt(Math.pow(servidorAsociado.getCoordenadas().getX() - coordenadas.getX(), 2)
-        + Math.pow(servidorAsociado.getCoordenadas().getY() - coordenadas.getY(), 2));
+    //1.DISTANCIA DEL ROUTER AL SERVIDOR ASOCIADO INICIALMENTE
+    int distancia = (int) Math.sqrt(Math.pow(servidorAsociado.getCoordenadas().getX() - coordenadas.getX(), 2) + Math.pow(servidorAsociado.getCoordenadas().getY() - coordenadas.getY(), 2));
     
-
-    int velocidadTotal = new Conexion(IP, down, up, online, generacion, c, c.getModem().getServidorAsociado()).getVelocidad();
-
+    //APLICACION DE LIGADURA DINÁMICA Y SE HALLA LA VELOCIDAD TOTAL DE CONEXION
+    Router conexion = new Conexion(IP, down, up, online, generacion, c, c.getModem().getServidorAsociado());
+    int velocidadTotal = conexion.getVelocidad();
+    
+    //VARIABLES
     int distanciaTemporal = 0;
     Servidor servTemporal = null;
 
+    //SE RECORREN LOS SERVIDORES DE LA SEDE Y SE HALLA EL MÁS CERCANO
     for (Servidor servidor : servidoresLocalidad) {
 
-      // Distancia
+      distanciaTemporal = (int) Math.sqrt(Math.pow(servidor.getCoordenadas().getX() - coordenadas.getX(), 2) + Math.pow(servidor.getCoordenadas().getY() - coordenadas.getY(), 2));
 
-      distanciaTemporal = (int) Math.sqrt(Math.pow(servidor.getCoordenadas().getX() - coordenadas.getX(), 2)
-          + Math.pow(servidor.getCoordenadas().getY() - coordenadas.getY(), 2));
-
-      if (distanciaTemporal < distancia) {
+      if (distanciaTemporal <= distancia) {
         distancia = distanciaTemporal;
         servTemporal = servidor;
       }
-
     }
 
-     Integer intensidadFlujoMayor = (int)(((velocidadTotal/verificarDispositivos(Dispositivo.getDispositivosTotales(), this).size()) - distancia)* servidorAsociado.getPORCENTAJE_EFICIENCIA());
+    Integer intensidadFlujoMayor = (int)((servTemporal.getFLUJO_RED_NETO()+(velocidadTotal/verificarDispositivos(Dispositivo.getDispositivosTotales(), this).size()) - distancia)* servTemporal.getPORCENTAJE_EFICIENCIA());
     ArrayList<Object> lista = new ArrayList<Object>();
+    
     lista.add(servTemporal);
     lista.add(intensidadFlujoMayor);
-
+    
     return lista;
   }
 
-  // Intensidades---Funcionalidad Reporte
-  //Tambien se hereda de cobertura
-  public ArrayList<Integer> intensidadFlujoClientes(ArrayList<Cliente> ctes, Servidor servidor, boolean Reales) { //Si reales es true-InteReales
+
+  //METODOS INSTANCIA-- IMPLEMENTACION DEL METODO ABSTRACTO HEREDADO DE COBERTURA--FUNCIONALIDAD REPORTE
+  public ArrayList<Integer> intensidadFlujoClientes(ArrayList<Cliente> ctes, Servidor servidor, boolean Reales) { //SI REALES==TRUE CALCULA LAS INTENSIDADES REALES, DE LO CONTRARIO LAS QUE DEBERIAN LLEGAR
+   
     ArrayList<Integer> lista = new ArrayList<>();
 
     for (Cliente c : ctes) {
 
+      int intensidad=0;
       String ip = c.getModem().getIP();
       int up = c.getModem().getUp();
       int down = c.getModem().getDown();
       boolean online = c.getModem().isOnline();
       int generacion = c.getModem().getGeneracion();
-      int velocidad = new Conexion(ip, up, down, online, generacion, c, c.getModem().getServidorAsociado()).getVelocidad();
+      int velocidad = new Conexion(ip, up, down, online, generacion, c, servidor).getVelocidad();
       int dispositivos = c.getModem().verificarDispositivos(Dispositivo.getDispositivosTotales(), c.getModem()).size();
-      int distancia = (int) Math.sqrt(Math.pow(c.getModem().getServidorAsociado().getCoordenadas().getX() - c.getModem().getCoordenadas().getX(), 2)
-      + Math.pow(c.getModem().getServidorAsociado().getCoordenadas().getY() - c.getModem().getCoordenadas().getY(), 2));
-      double porcentaje = c.getModem().getServidorAsociado().getPORCENTAJE_EFICIENCIA();
+      int distancia = (int) Math.sqrt(Math.pow(servidor.getCoordenadas().getX() - c.getModem().getCoordenadas().getX(), 2) + Math.pow(servidor.getCoordenadas().getY() - c.getModem().getCoordenadas().getY(), 2));
+      double porcentaje = servidor.getPORCENTAJE_EFICIENCIA();
 
-      int intensidad = (int)((velocidad / dispositivos - distancia) * porcentaje);
+      if(dispositivos!=0){
+        intensidad = (int)((servidor.getFLUJO_RED_NETO()+velocidad / dispositivos - distancia) * porcentaje);
+      }else{
+        intensidad = (int)((servidor.getFLUJO_RED_NETO()- distancia) * porcentaje);
+      }
+      
       int intensidad1 = (int)(intensidad/porcentaje);
       
       if (Reales) {
-        lista.add(intensidad); // Intensidad neta
+        lista.add(intensidad); //INTENSIDAD REAL (LAS QUE ESTÁ LLEGANDO)
       } else {
-        lista.add(intensidad1); //Intensidad que deberia llegarle
+        lista.add(intensidad1); //INTENSIDAD ADECUADA (LA QUE DEBERIA LLEGAR)
       }
     }
     return lista;
   }
 
-  //SOLO PARA QUE NO DE ERROR EN COMPILACION PORQUE HEREDA DE COBERTURA
+  //DEFINICIÓN DEL METODO ABSTRACTO QUE HEREDA DE COBERTURA--EVITAR ERRORES DE COMPILACION
   public Antena rastrearGeneracionCompatible(ArrayList<Antena> antenasSede,Router r){
     return null;
   }
 
-  //PARA REPORTE
+  //METODO ESTATICO QUE CREA UN ROUTER PARA EL ADMINISTRADOR---UN ROUTER ALEATORIO--FUNCIONALIDAD REPORTE
   public static Router adminRouter(){
-    return new Router(0, 0, false, null);
+    return new Router();
   }
 
-  // Metodos getters y setters de los atributos
-  public Servidor getServidorAsociado() {
-    return servidorAsociado;
-  }
-
-  public void setServidorAsociado(Servidor servidor) {
-    this.servidorAsociado = servidor;
-    servidorAsociado.getRouters().add(this);
-  }
+  //SETTERS Y GETTERS
 
   public String getIP() {
     return IP;
@@ -388,6 +416,14 @@ public class Router extends Cobertura {
     this.coordenadas = coordenadas;
   }
 
+  public Servidor getServidorAsociado() {
+    return servidorAsociado;
+  }
+
+  public void setServidorAsociado(Servidor servidorAsociado) {
+    this.servidorAsociado = servidorAsociado;
+  }
+
   public Antena getAntenaAsociada() {
     return antenaAsociada;
   }
@@ -403,4 +439,13 @@ public class Router extends Cobertura {
   public void setSede(String sede) {
     this.sede = sede;
   }
+
+  public int getVelocidad() {
+    return velocidad;
+  }
+
+  public void setVelocidad(int velocidad) {
+    this.velocidad = velocidad;
+  }
+  
 }
