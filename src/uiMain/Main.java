@@ -548,3 +548,450 @@ public class Main {
                       Vcontrol9 = true;
 
                       //SE COMPRUEBRA SI EL CLIENTE TIENE PAGOS ATRASADOS
+                       if ((clienteActual.getFactura().verificarFactura(clienteActual.getFactura()) == false) || (clienteActual.getFactura().getPagosAtrasados() > 0)) {
+
+                        //SE OFRECE LA POSIBILIDAD DE CANCELAR LA DEUDA
+                        System.out.println("\nTienes " + clienteActual.getFactura().getPagosAtrasados()+ " pagos atrasados, para continuar debes saldar la deuda."+ "\nTu factura actualmente está por un valor de $"
+                        + clienteActual.getFactura().getPrecio() + ", elige una opción:"+ "\n1. Pagar la totalidad de la deuda." + "\n2. Salir.");
+                        
+                        boolean Vcontrol10 = false;
+                        while (Vcontrol10 == false) {
+                          opc = sc.nextInt();
+                          if (opc == 1) {
+
+                            Vcontrol10 = true;
+                            boolean Vcontrol11=false;
+                            while (Vcontrol11==false){
+                              System.out.println("Digite por favor la cantidad total a pagar: ");
+                              if (clienteActual.getFactura().accionesPagos(2) != null) { //CUARTO METODO DE LA FUNCIONALIDAD QUE COMPRUEBA QUE SE HAYA CANCELADO TODO
+                                
+                                Vcontrol11=true;
+
+                                //SE REALIZAN LOS CAMBIOS
+                                clienteActual.getModem().getServidorAsociado().getRouters().remove(clienteActual.getModem());
+                                clienteActual.getProveedor().getClientes().remove(clienteActual);
+                            
+                                clienteActual.setPlan((ArrayList<Integer>) (mejoraIdeal.get(4)));
+                              
+                                Servidor servidorNuevo = (Servidor) (mejoraIdeal.get(1));
+              
+                                ProveedorInternet proveedorNuevo = servidorNuevo.getProveedor();
+
+                                clienteActual.setProveedor(proveedorNuevo);
+                                clienteActual.getModem().setServidorAsociado(servidorNuevo);
+                                clienteActual.getModem().setUp(clienteActual.getPlan().get(0));
+                                clienteActual.getModem().setDown(clienteActual.getPlan().get(1));
+                                clienteActual.getModem().setAntenaAsociada(Antena.antenasSede(clienteActual.getModem().getSede(), clienteActual.getProveedor().getNombre()));
+                                clienteActual.getModem().setIntensidadFlujo((int) (mejoraIdeal.get(3)));
+                        
+                                servidorNuevo.getRouters().add(clienteActual.getModem());
+                                clienteActual.getProveedor().getClientes().add(clienteActual);
+    
+                                clienteActual.getFactura().setPrecio(clienteActual.getPlan().get(2));
+                                clienteActual.getFactura().setMesActivacion(Mes.MAYO);
+                        
+                                System.out.println("Tu plan ha sido actualizado con éxito.");
+                                Vcontrol1=false;
+
+                              }else{
+                                System.out.println("Valor incorrecto.");
+                                Vcontrol11 = false;
+                              }
+                            }
+
+                          } else if (opc == 2) { //DECIDE NO CANCELAR
+                            System.out.print("Ha sido un placer servirte :D");
+                            Vcontrol10 = true;
+                            Vcontrol1=false;
+                             // elige opcion salir
+
+                          } else {
+                            System.out.println("Ingresa una opción válida.");
+                          }
+                        }
+
+                      } else if (clienteActual.getFactura().getPagosAtrasados() == 0) { //EL CLIENTE NO TIENE PAGOS ATRASADOS
+
+                        //SE REALIZAN LOS CAMBIOS
+                        System.out.print("Tu plan ha sido configurado con éxito.");
+                        clienteActual.getModem().getServidorAsociado().getRouters().remove(clienteActual.getModem());
+                        clienteActual.getProveedor().getClientes().remove(clienteActual);
+
+                        clienteActual.setPlan((ArrayList<Integer>) (mejoraIdeal.get(4)));
+                        clienteActual.setProveedor((ProveedorInternet) (mejoraIdeal.get(2)));
+                        Servidor servidorNuevo = (Servidor) (mejoraIdeal.get(1));
+                        clienteActual.getModem().setServidorAsociado(servidorNuevo);
+                        clienteActual.getModem().setUp(clienteActual.getPlan().get(0));
+                        clienteActual.getModem().setDown(clienteActual.getPlan().get(1));
+                        clienteActual.getModem().setAntenaAsociada(Antena.antenasSede(clienteActual.getModem().getSede(), clienteActual.getProveedor().getNombre()));
+                        clienteActual.getModem().setIntensidadFlujo((int) (mejoraIdeal.get(3)));
+                        
+                        servidorNuevo.getRouters().add(clienteActual.getModem());
+                        clienteActual.getProveedor().getClientes().add(clienteActual);
+                        clienteActual.getFactura().setPrecio(clienteActual.getPlan().get(2));
+                        clienteActual.getFactura().setMesActivacion(Mes.MAYO);
+                    
+                        Vcontrol1=false;
+                      }
+                    } else if (opc == 2) { //DECIDE NO REALIZAR EL CAMBIO
+                      Vcontrol9 = true;
+                      System.out.println("Ha sido un gusto servirte :)");
+                      Vcontrol1=false;
+                      break;
+                    } else {
+                      System.out.println("Ingresa una opción válida.");
+
+                    }
+                  }
+
+                }
+              } else { //NO SE RECONOCE EL CLIENTE
+                System.out.println("Datos incorrectos, introdúcelos de nuevo.");
+                System.out.println("Ingresa su Id: ");
+                ID = sc.nextLong();
+                System.out.println("Ingresa su nombre: ");
+                sc.nextLine();
+                nombre = sc.nextLine().toLowerCase();
+                System.out.println("Ingresa el nombre de tu proveedor: ");
+                proveedor1 = sc.nextLine().toLowerCase();
+              }
+
+            } else { //EL PROVEEDOR NO EXISTE
+                System.out.println("Datos incorrectos, introdúcelos de nuevo.");
+                System.out.println("Ingresa su Id: ");
+                ID = sc.nextLong();
+                System.out.println("Ingresa su nombre: ");
+                sc.nextLine();
+                nombre = sc.nextLine().toLowerCase();
+                System.out.println("Ingresa el nombre de tu proveedor: ");
+                proveedor1 = sc.nextLine().toLowerCase();
+            }
+          }
+
+          break;
+
+        case 4: // FUNCIONALIDAD TEST
+
+            //SE SOLICITAN LOS DATOS
+            System.out.println("Ingresa tu Id: ");
+            ID = sc.nextLong();
+            System.out.println("Ingresa tu nombre: ");
+            sc.nextLine();
+            nombre = sc.nextLine().toLowerCase();
+            System.out.println("Ingresa el nombre de tu proveedor: ");
+            String proveedor2 = sc.nextLine().toLowerCase();
+
+            //SE OBTIENE EL PROVEEDOR
+            boolean Vcontrol5 = false;
+            while (Vcontrol5 == false) {
+
+                proveedorActual = null;
+                for (ProveedorInternet proveedor3 : ProveedorInternet.getProveedoresTotales()) {
+                  if (proveedor3.getNombre().equals(proveedor2)) {
+                    proveedorActual = proveedor3;
+                  }
+                }
+
+              if(proveedorActual!=null){
+                if (proveedorActual.verificarCliente(nombre, ID) != null) { //SE VERIFICA QUE EL CLIENTE EXISTA--PRIMER METODO DE LA FUNCIONALIDAD
+                  Vcontrol5 = true;
+              
+                  Cliente clienteActual = proveedorActual.verificarCliente(nombre, ID); //SE INTANCIA EL CLIENTE
+                  String resultado = clienteActual.getModem().test(clienteActual); // SE REALIZA EL TEST Y SE INSTANCIA EL RESULTADO--SEGUNDO METODO DE LA FUNCIONALIDAD
+                  ArrayList<Antena> antenasSede = Antena.antenasSede(clienteActual.getModem().getSede()); // SE OBTIENEN LAS ANTENAS DE UNA SEDE-- TERCER METODO DE LA FUNCIONALIDAD
+
+                  //SE PROCEDE DE ACUERDO AL RESULTADO DEL TEST
+                  if (resultado.contains("saturada")) {
+                      System.out.println(resultado);
+                      System.out.println("Te recomendamos remover dispositivos");
+                      System.out.println("Dispositvos:\n");
+                      ArrayList<Dispositivo> dispositivosClientes = clienteActual.getModem().verificarDispositivos(Dispositivo.getDispositivosTotales(), clienteActual.getModem());
+                      dispositivosClientes.stream().forEach(System.out::println);
+                      System.out.print("Indica el número del dispositivo que deseas remover: ");
+                      opc=sc.nextInt();
+
+                      if(opc<=dispositivosClientes.size()){
+                        System.out.println(Dispositivo.desconectarDispositivo(clienteActual, dispositivosClientes.get(opc-1)));
+                        Vcontrol1=false;
+                      }else{
+                        System.out.print("Opcion incorrecta.");
+                        Vcontrol1=false;
+                      }
+
+                  }else if (resultado.contains("incompatible")) {
+                    System.out.print("El test ha detectado problemas con tu red." + "\n");
+                    System.out.println(resultado);
+                    System.out.print("Lo anterior quiere decir que la generación de tu router es incompatible con la antena a la que estás conectado." +"\n");
+                    System.out.println("Esta antena es compatible y accesible: ");
+                    System.out.println(clienteActual.getModem().getAntenaAsociada().rastrearGeneracionCompatible(antenasSede, clienteActual.getModem())); //SE OBTIENE LA ANTENA RECOMENDADA-CUARTO METODO DE LA FUNCIONALIDAD
+
+                    System.out.println("Deseas cambiar a la nueva antena:" + "\n1.Si" + "\n2.No");
+
+                    boolean Vcontrol11 = false;
+                    while (Vcontrol11==false) {
+                        opc=sc.nextInt();
+                        if (opc==1) { //DECIDE HACER EL CAMBIO
+                            Vcontrol11=true;
+
+                            //SE APLICA LIGADURA DINAMICA
+                            Cobertura coberturaActual = clienteActual.getModem().getAntenaAsociada();
+                            Antena antenaNueva = coberturaActual.rastrearGeneracionCompatible(antenasSede, clienteActual.getModem());  //SE OBTIENE LA ANTENA RECOMENDADA-CUARTO METODO DE LA FUNCIONALIDAD
+                            if (antenaNueva.getProveedor().getNombre().equals(clienteActual.getProveedor().getNombre())) { //SI LA ANTENA NUEVA ES DEL MISMO PROVEEDOR QUE TIENE EL CLIENTE
+                                  clienteActual.getModem().setAntenaAsociada(antenaNueva);
+                                  System.out.print("Tu proceso ha finalizado con éxito.");
+                                  Vcontrol1=false;
+                            }else{ //SI LA ANTENA NUEVA ES DE UN PROVEEDOR DISTINTO AL DEL CLIENTE
+                                  int costo = 100000;
+                                  System.out.println("Esta antena pertenece a otro proveedor, por tanto el roaming tiene un costo de " + costo);
+                                  System.out.print("Ingresa el total a pagar: ");
+                                  boolean Vcontrol12 = false;
+                                  int pagoCliente;
+                                  while (Vcontrol12==false) {
+                                      pagoCliente=sc.nextInt();
+                                      if (pagoCliente>=costo) {
+                                          Vcontrol12 = true;
+                                          clienteActual.getModem().setAntenaAsociada(antenaNueva);
+                                          System.out.print("Te han quedado " + (pagoCliente - costo) + " pesos."+ "\nTu proceso ha finalizado con éxito.");
+                                          Vcontrol1=false;
+                                      }else {
+                                          System.out.print("Saldo insuficiente, por favor ingresa de nuevo la cantidad requerida: ");
+                                      }
+                                  }
+                             }
+                         }else if (opc==2) { //NO DECIDE HACER EL CAMBIO
+                              Vcontrol11=true;
+                              System.out.print("Ha sido un placer servirte :D");
+                              Vcontrol1=false;
+
+                         }else{
+                              System.out.println("Ingrese una opción válida.");
+                         }
+
+                     }
+
+                  }else if(resultado.contains("Inaccesible")){
+                      System.out.print("El test ha detectado problemas con tu red." + "\n");
+                      System.out.println(resultado);
+                      System.out.print("Lo anterior quiere decir que te encuentras fuera de la zona de cobertura de la antena que tienes asociada." + "\n");
+                      System.out.println("Esta antena es compatible y accesible: ");
+                      System.out.println(clienteActual.getModem().getAntenaAsociada().rastrearGeneracionCompatible(antenasSede, clienteActual.getModem())); //SE OBTIENE LA ANTENA RECOMENDADA-CUARTO METODO DE LA FUNCIONALIDAD
+                      System.out.println("Deseas cambiar a la nueva antena:" + "\n1.Si" + "\n2.No");
+
+                      boolean Vcontrol13 = false;
+                      while (Vcontrol13==false) {
+                          opc=sc.nextInt();
+                          if (opc==1) {
+                              Vcontrol13 = true;
+
+                              //SE APLICA LIGADURA DINAMICA
+                              Cobertura coberturaActual = clienteActual.getModem().getAntenaAsociada();
+                              Antena antenaNueva = coberturaActual.rastrearGeneracionCompatible(antenasSede, clienteActual.getModem()); //SE OBTIENE LA ANTENA RECOMENDADA-CUARTO METODO DE LA FUNCIONALIDAD
+                              if (antenaNueva.getProveedor().getNombre().equals(clienteActual.getProveedor().getNombre())) { //SI LA ANTENA NUEVA ES DEL MISMO PROVEEDOR QUE TIENE EL CLIENTE
+                                  clienteActual.getModem().setAntenaAsociada(antenaNueva);
+                                  System.out.print("Tu proceso ha finalizado con éxito.");
+                                  Vcontrol1=false;
+                              }else{ //SI LA ANTENA NUEVA ES DE UN PROVEEDOR DISTINTO AL DEL CLIENTE
+                                  int costo = 100000;
+                                  System.out.println("Esta antena pertenece a otro proveedor, por tanto el roaming tiene un costo de " + costo);
+                                  System.out.print("Ingresa el total a pagar: ");
+                                  boolean Vcontrol14 = false;
+                                  while (Vcontrol14==false) {
+                                      int pagoCliente = sc.nextInt();
+                                      if (pagoCliente>=costo) {
+                                          Vcontrol14 = true;
+                                          clienteActual.getModem().setAntenaAsociada(antenaNueva);
+                                          System.out.print("Te han quedado " + (pagoCliente - costo) + " pesos."+ "\nTu proceso ha finalizado con éxito.");
+                                          Vcontrol1=false;
+                                      }else{
+                                          System.out.print("Saldo insuficiente, por favor ingresa de nuevo la cantidad requerida: ");
+                                      }
+                                  }
+                              }
+
+                          }else if(opc==2){ //NO DECIDE HACER EL CAMBIO
+                              Vcontrol13=true;
+                              System.out.print("Ha sido un placer servirte :D");
+                              Vcontrol1=false;
+                              
+                          }else{
+                              System.out.println("Ingresa una opcion valida.");
+                          }
+                      }
+
+                  }else if(resultado.contains("Ping")){ //EN CASO DE QUE NO SE DETECTEN FALLAS EN EL TEST
+                    System.out.print("El test realizado indica que tu red no se encuentra saturada y la antena a la que estás conectado es la ideal entre todas las alternativas posibles." + "\n");
+                    System.out.print(resultado + "\n" + "Tu proceso ha finalizado con éxito.");
+                    Vcontrol1=false;
+
+                  }
+
+              }else{ //NO RECONOCE EL CLIENTE
+                    System.out.println("Datos incorrectos, introdúcelos de nuevo.");
+                    System.out.println("Ingresa su Id: ");
+                    ID = sc.nextLong();
+                    System.out.println("Ingresa su nombre: ");
+                    sc.nextLine();
+                    nombre = sc.nextLine().toLowerCase();
+                    System.out.println("Ingresa el nombre de su proveedor: ");
+                    proveedor2 = sc.nextLine().toLowerCase();
+              }   
+
+            }else{ //NO EXISTE EL PROVEEDOR
+              System.out.println("Datos incorrectos, introdúcelos de nuevo.");
+              System.out.println("Ingresa su Id: ");
+              ID = sc.nextLong();
+              System.out.println("Ingresa su nombre: ");
+              sc.nextLine();
+              nombre = sc.nextLine().toLowerCase();
+              System.out.println("Ingresa el nombre de su proveedor: ");
+              proveedor2 = sc.nextLine().toLowerCase();
+
+            }
+            
+          } 
+
+            break;
+
+        case 5: // FUNCIONALIDAD REPORTE 
+
+            //SE PIDE EL NOMBRE DEL PROVEEDOR
+            System.out.println("Ingresa el nombre de tu compañía: ");
+            sc.nextLine();
+            nombre = sc.nextLine().toLowerCase();
+
+            boolean Vcontrol7 = false;
+            while (Vcontrol7 == false) {
+              if (Servidor.adminServidor().verificarAdmin(ProveedorInternet.getProveedoresTotales(), nombre).size() != 0) {//SE VERIFICA QUE EL PROVEEDOR EXISTA Y CUENTE CON SERVIDORES Y SE OBTIENEN DICHOS SERVIDORES
+                                                                                         
+                Vcontrol7 = true;
+
+                ArrayList<Servidor> servidoresProveedor = Servidor.adminServidor().verificarAdmin(ProveedorInternet.getProveedoresTotales(), nombre); //PRIMER METODO DE LA FUNCIONALIDAD
+                System.out.println("La compañía de Internet " + nombre + " tiene servidores en las siguientes sedes: ");
+
+                //SE MUESTRA POR CONSOLA LAS SEDES EN LAS QUE SE ENCUENTRA EL PROVEEDOR
+                int contador = 1;
+                for (Servidor servidor : servidoresProveedor) {
+                  System.out.println(contador + ". " + servidor.getSede());
+
+                  if(servidoresProveedor.size() != contador){
+                    contador++;
+                  }
+
+                }
+
+              //SE PIDE QUE INDIQUE LA SEDE Y SE VALIDA SI ES CORRECTA
+                boolean Vcontrol8 = false;
+                while (Vcontrol8 == false) {
+                  System.out.println("Ingresa la sede que deseas revisar (Indica el número de la opción): ");
+                  opc = sc.nextInt();
+                  if ((opc <= contador) && (opc >= 1)) {
+                    Vcontrol8 = true;
+
+                    Servidor servidorLocalidad = servidoresProveedor.get(opc - 1); //SE OBTIENE EL SERVIDOR DE LA SEDE ELEGIDA
+
+                    //SE IMPLEMENTA TRES VECES EL SEGUNDO METODO DE LA FUNCIONALIDAD--SE SEPARAN LOS CLIENTES DEL PROVEEDOR DE ACUERDO CON SU PLAN
+                    ArrayList<Cliente> clientesBasic = Cliente.buscarCliente1(servidorLocalidad.getSede(), "BASIC",
+                        servidorLocalidad.getProveedor());
+                    ArrayList<Cliente> clientesStandard = Cliente.buscarCliente1(servidorLocalidad.getSede(),
+                        "STANDARD", servidorLocalidad.getProveedor());
+                    ArrayList<Cliente> clientesPremium = Cliente.buscarCliente1(servidorLocalidad.getSede(), "PREMIUM",
+                        servidorLocalidad.getProveedor());
+
+                    //SE IMPLEMENTA EL TERCER METODO DE LA FUNCIONALIDAD
+
+                    // SE CALCULA LAS INTENSIDADES REALES DE LOS CLIENTES, PERO ESTO ES CLASIFICADO POR PLAN
+                    ArrayList<Integer> intensidadBasic = Router.adminRouter().intensidadFlujoClientes(clientesBasic,servidorLocalidad, true);
+                    ArrayList<Integer> intensidadStandard = Router.adminRouter().intensidadFlujoClientes(clientesStandard, servidorLocalidad, true);
+                    ArrayList<Integer> intensidadPremium = Router.adminRouter().intensidadFlujoClientes(clientesPremium,servidorLocalidad, true);
+
+                    // SE CALCULA LAS INTENSIDADES QUE DEBERIAN LLEGARLE A LOS CLIENTES, PERO ESTO ES CLASIFICADO POR PLAN
+                    ArrayList<Integer> intensidadB = Router.adminRouter().intensidadFlujoClientes(clientesBasic,servidorLocalidad, false);
+                    ArrayList<Integer> intensidadS = Router.adminRouter().intensidadFlujoClientes(clientesStandard,servidorLocalidad, false);
+                    ArrayList<Integer> intensidadP = Router.adminRouter().intensidadFlujoClientes(clientesPremium,servidorLocalidad, false);
+
+                    
+                    // SE REALIZAN LAS COMPARACIONES-SE OBTIENEN LOS PROMEDIOS DE DICHAS INTENSIDADES
+
+                    //PROMEDIO INTENSIDADES REALES
+                    int PromedioBasic = (intensidadBasic.stream().mapToInt(Integer::intValue).sum()) / intensidadBasic.size();
+                    int PromedioStandard = (intensidadStandard.stream().mapToInt(Integer::intValue).sum()) /intensidadStandard.size();
+                    int PromedioPremium = (intensidadPremium.stream().mapToInt(Integer::intValue).sum()) / intensidadPremium.size();
+
+                    //PROMEDIO INTENSIDADES ADECUADAS
+                    int PromedioB = (intensidadB.stream().mapToInt(Integer::intValue).sum()) / intensidadB.size();
+                    int PromedioS = (intensidadS.stream().mapToInt(Integer::intValue).sum()) / intensidadS.size();
+                    int PromedioP = (intensidadP.stream().mapToInt(Integer::intValue).sum()) / intensidadP.size();
+
+                    if ((PromedioBasic < PromedioB) || (PromedioStandard < PromedioS) || (PromedioPremium < PromedioP)) { //SE COMPRUEBA SI ALGUN PROMEDIO DE LAS INTENSIDADES REALES ES MENOR A LAS ADECUADAS
+
+                      //SE REALIZA EL REPORTE
+                      System.out.print("De acuerdo con el análisis realizado al servidor de la sede " + servidorLocalidad.getSede()+ " se hallaron errores en el servidor, a continuación se presentan las recomendaciones y el reporte.");
+
+                      //SE CALCULAN LAS DISTANCIAS PROMEDIOS A LAS QUE DEBERIA ENCONTRARSE EL SERVIDOR DE SUS CLIENTES
+                      //DISTANCIAS OPTIMAS POR PLAN
+                      ArrayList<Integer> dOptBasic = servidorLocalidad.distanciasOptimas(clientesBasic, intensidadB);
+                      ArrayList<Integer> dOptStandard = servidorLocalidad.distanciasOptimas(clientesStandard, intensidadS);
+                      ArrayList<Integer> dOptPremium = servidorLocalidad.distanciasOptimas(clientesPremium,intensidadP);
+
+                      //PROMEDIO DE LAS DISTANCIAS OPTIMAS
+                      int PromedioDB = (dOptBasic.stream().mapToInt(Integer::intValue).sum()) / dOptBasic.size();
+                      int PromedioDS = (dOptStandard.stream().mapToInt(Integer::intValue).sum()) / dOptStandard.size();
+                      int PromedioDP = (dOptPremium.stream().mapToInt(Integer::intValue).sum()) / dOptPremium.size();
+
+                      //SE PRESENTA EL REPORTE
+                      System.out.println("\nREPORTE" + "\nIntensidades:"
+                          + "\nSe encontraron diferencias entre las intensidades netas y las que se deberían registrar. Para ello, se clasificaron las intensidades por planes y de esta manera identificar el plan más afectado."
+                          + "\nPLAN BASIC" + "\nIntensidad de Flujo Promedio Neta: " + PromedioBasic
+                          + "\nIntensidad de Flujo Promedio Adecuado: " + PromedioB + "\nPLAN STANDARD"
+                          + "\nIntensidad de Flujo Promedio Neta: " + PromedioStandard
+                          + "\nIntensidad de Flujo Promedio Adecuada: " + PromedioS + "\nPLAN PREMIUM"
+                          + "\nIntensidad de Flujo Promedio Neta: " + PromedioPremium
+                          + "\nIntensidad de Flujo Promedio Adecuada: " + PromedioP
+                          + "\nLas intensidades dependen en gran medida de las distancias entre el router de los clientes y el servidor, por ello se recomienda cambiar la ubicación de este último. A continuación, se presentan las distancias promedios recomendadas a las cuales debe estar el servidor para que proporcione la intensidad de flujo adecuada en cada plan."
+                          + "\nDISTANCIAS ÓPTIMAS" + "\nDistancia Promedio-Plan Basic: " + PromedioDB + " metros."
+                          + "\nDistancia Promedio-Plan Standard: " + PromedioDS + " metros." + "\nDistancia Promedio-Plan Premium: "
+                          + PromedioDP + " metros."
+                          + "\nFinalmente, las intensidades de flujo reales están afectadas por el porcentaje de eficiencia del servidor, esto indica que el servidor está consumiendo una cantidad significativa del flujo de red inicial que le proporciona el proveedor. Por ende, se recomienda cambiarlo o en su defecto, implementar la solución de las distancias, expuesta anteriormente.");
+
+                      if (servidorLocalidad.getRouters().size() == servidorLocalidad.getINDICE_SATURACION()) { //SI EL SERVIDOR ESTÁ SATURADO, SE INDICA POR CONSOLA
+                        servidorLocalidad.setSaturado(true);
+                        System.out.print("ALERTA: El servidor ya se encuentra saturado, es decir, ya tiene la cantidad de routers límite conectados. Se recomienda ampliar su capacidad.");
+                        Vcontrol1=false;
+                        break;
+                      }else{
+                        Vcontrol1=false;
+                      }
+
+                      break;
+
+                    } else { //NO SE ENCONTRARON ANOMALIAS
+                      System.out.print("El servidor funciona correctamente y proporciona las intensidades de flujo adecuadas.");
+                      Vcontrol1=false;
+                      break;
+                    }
+
+                  } else {
+                    System.out.print("Ingresa una opción válida." + "\n");
+                  }
+                }
+
+              } else { //NO RECONOCE AL ADMIN
+                System.out.println("Datos incorrectos, introdúcelos de nuevo");
+                System.out.println("Ingresa el nombre de tu compañía: ");
+                nombre = sc.nextLine().toLowerCase();
+              }
+            }
+
+            break;
+
+          case 6: //OPCION SALIR DEL PROGRAMA--SE REALIZA EL PROCESO DE SERIALIZACION
+            System.out.println("Ha sido un gusto servirte :D");
+            Serializador.serializar();
+            break;
+        }
+      } else {
+        System.out.println("Ingresa una opcion válida");
+      }
+    }
+  }
+}
